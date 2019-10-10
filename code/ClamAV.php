@@ -98,6 +98,8 @@ class ClamAV extends SS_Object
     }
 
     /**
+     * @param string $filepath The system file path to be scanned
+     *
      * @return ClamAVScan|null
      */
     public function scanFileForVirus($filepath)
@@ -114,7 +116,10 @@ class ClamAV extends SS_Object
             $record->Filename = $filepath;
             $record->IPAddress = $this->getIP();
             $record->setRawData($scanResult);
-
+            SS_Log::log(
+                "ClamAV offline: File '" . $filepath ."' not scanned.",
+                SS_Log::WARN
+            );
             return $record;
         }
 
@@ -130,6 +135,13 @@ class ClamAV extends SS_Object
         $record->IsScanned = 1;
         $record->IsInfected = ($stats !== 'OK');
         $record->setRawData($scanResult);
+
+        if ($record->IsInfected) {
+            SS_Log::log(
+                "File at '" . $filepath ."' is infected",
+                SS_Log::WARN
+            );
+        }
 
         return $record;
     }
